@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Cunningham Chain Locator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="description" content="A simple calculator that identifies where a given prime Number appears within a Cunningham chain." />
+<style type="text/css"><!--
+
+    body { margin: 25px }
+    #chainPresent { margin-top: 1em; font-family: "Courier New", Courier, monospace; font-size: 14pt }
+    .chainBegin { border-top: solid 1px black; border-left: solid 1px black; padding: 0.25em; padding-right: 0 }
+    .chainEnd { border-bottom: solid 1px black; border-right: solid 1px black; padding: 0.25em }
+    .chainEntry { font-weight: bold }
+    .smallPrint { font-size: 8pt }
+
+    @media only screen and (max-width: 360px) {
+        body { margin: 17px }
+        #chainPresent { font-family: "Droid Sans", sans-serif; font-size: 18pt }
+        p { text-align: justify }
+        .smallPrint { font-size: initial }
+    }
+
+// --></style>
+<script type="text/javascript"><!--
+
+    function isPrime(number) {
+        var num = Math.abs(number);
+        if (!Number.isInteger(num)) {
+            return false
+        } else {
+            switch (num) {
+                case 0:
+                case 1: return false;
+                case 2: return true;
+                default:
+                    if (num % 2 == 0) {
+                        return false
+                    } else {
+                        var threshold = Math.sqrt(num);
+                        var testPrimeDiv = 3;
+                        var presumedPrime = true;
+                        while (presumedPrime && testPrimeDiv <= threshold) {
+                            presumedPrime = (num % testPrimeDiv != 0);
+                            testPrimeDiv += 2;
+                        }
+                        return presumedPrime
+                    }
+            }
+        }
+    }
+
+    function findChain() {
+        var chainPrime = parseInt(document.forms["chainLocator"]["prime"].value);
+        var chainString = "";
+        if (!isPrime(chainPrime)) {
+            chainString = chainPrime + " is not a prime number."
+        } else {
+            var chainArray = [];
+            var entryIndex = 0;
+            var potentialChainElement = chainPrime;
+            while (isPrime(potentialChainElement)) {
+                chainArray.push(potentialChainElement);
+                potentialChainElement = 2 * potentialChainElement + 1;
+            }
+            potentialChainElement = (chainPrime - 1)/2;
+            while (isPrime(potentialChainElement)) {
+                chainArray.splice(0, 0, potentialChainElement);
+                entryIndex++;
+                potentialChainElement = (potentialChainElement - 1)/2;
+            }
+            // chainString = chainArray.join(); ***No-frills formatting, if you uncomment this, be sure to comment out the next few lines
+            if (chainArray.length == 1) {
+                chainString = "<span class='chainBegin chainEntry chainEnd'>" + chainPrime + "</span>"
+            } else {
+                var currIndex = 1;
+                if (entryIndex == 0) {
+                    chainString = "<span class='chainBegin chainEntry'>" + chainPrime + "</span>, ";
+                    while (currIndex < chainArray.length - 1) {
+                        chainString = chainString + chainArray[currIndex] + ", ";
+                        currIndex++;
+                    }
+                    chainString = chainString + "<span class='chainEnd'>" + chainArray[currIndex] + "</span>"
+                } else {
+                    if (entryIndex == chainArray.length - 1) {
+                        chainString = "<span class='chainBegin'>" + chainArray[0] + "</span>, ";
+                        while (currIndex < chainArray.length - 1) {
+                            chainString = chainString + chainArray[currIndex] + ", ";
+                            currIndex++;
+                        }
+                        chainString = chainString + "<span class='chainEnd chainEntry'>" + chainPrime + "</span>"
+                    } else {
+                        chainString = "<span class='chainBegin'>" + chainArray[0] + "</span>, ";
+                        while (currIndex < entryIndex) {
+                            chainString = chainString + chainArray[currIndex] + ", ";
+                            currIndex++;
+                        }
+                        chainString = chainString + "<span class='chainEntry'>" + chainPrime + "</span>, ";
+                        currIndex++;
+                        while (currIndex < chainArray.length - 1) {
+                            chainString = chainString + chainArray[currIndex] + ", ";
+                            currIndex++;
+                        }
+                        chainString = chainString + "<span class='chainEnd'>" + chainArray[currIndex] + "</span>"
+                    }
+                }
+            }
+        }
+        document.getElementById("chainPresent").innerHTML = chainString
+    }
+
+// --></script>
+</head>
+<body>
+
+<h1>Cunningham Chain Locator</h1>
+
+<form name="chainLocator" action="#">
+<input type="number" name="prime" value="83" step="1" oninput="findChain()">
+<div id="chainPresent"><span class="chainBegin">41</span>, <span class="chainEntry">83</span>, <span class="chainEnd">167</span></div>
+</form>
+
+<p>Enter a prime number in the box above to see if it appears in a Cunningham chain of length 2 or greater.</p>
+
+<p>A Cunningham chain consists of prime numbers such that for each prime <i>p</i>, except the last, 2<i>p</i> + 1 is also prime (and is thus a Sophie Germain prime). Or, for each prime <i>p</i>, except the first, (<i>p</i> &minus; 1)/2 is also prime (and is thus a safe prime). A prime that is neither a Sophie Germain prime nor a safe prime trivially forms a Cunningham chain of length 1.</p>
+
+<p>Try the locator on a few primes listed in <a href="http://oeis.org/A156658">A156658</a> of N.&nbsp;J.&nbsp;A. Sloane's On-Line Encyclopedia of Integer Sequences.</p>
+
+<p class="smallPrint">NOTE: The locator is limited by the capabilities of JavaScript. A chain may display incomplete if any of its members are beyond what JavaScript can handle with integer precision. There is no mechanism to warn you if that happens. Also, moderately large numbers may cause your browser to slow down. In my testing with Firefox 59, the locator could handle inputs as large as 2147483647 without any problem. Any prime greater than that could cause sluggishness and/or incorrect results.</p>
+
+</body>
+</html>
